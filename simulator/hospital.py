@@ -15,20 +15,39 @@ class Hospital:
         locations {list}: a list of location names. The first is assumed to be the lab.
         distances {2d array}: an array of times between locations by index
         """
-        self.locations = [Location(name) for name in locations]
+        if isinstance(locations[0], Location):
+            self.locations = locations
+        else:
+            self.locations = [Location(name) for name in locations]
         self.distances = np.array(distances)
-        self.lab_indx = 0
+        self.lab = self.locations[0]
         self.time = 0
         self.porters = []
         self.samples = []
 
-    def add_porter(self, name):
-        self.porters.append(Porter(name, self.locations[self.lab_indx]))
+    def add_porter(self, name, id, current_location):
+        self.porters.append(Porter(name, self.get_location(current_location), id=id))
 
-    def add_sample(self, name, location, deadline):
+    def add_sample(self, name, id, location, deadline):
         self.samples.append(
-            Sample(name, location, deadline, self.locations[self.lab_indx])
+            Sample(name, self.get_location(location), deadline, self.lab)
         )
+
+    def get_location(self, location):
+        if isinstance(location, Location):
+            return location
+        if isinstance(current_location, str):
+            return [loc for loc in self.locations if loc.id==current_location][0]
+
+    def list_locations_without_samples(self):
+        return [
+            loc for loc in self.locations
+            if not loc.samples and not loc == self.lab
+        ]
+
+    def drop_locations_without_samples(self):
+        while self.list_locations_without_samples():
+            self.remove_location_and_samples(self.list_locations_without_samples()[0])
 
     def remove_porter_and_samples(self, porter):
         self.samples = [
@@ -40,7 +59,11 @@ class Hospital:
         self.samples = [
             sample for sample in self.samples if sample.location != location
         ]
-        self.locations.remove(location)
+        if location != self.lab:
+            location_indx = self.locations.index(location)
+            self.distances = np.delete(self.distances, location_indx, axis=0)
+            self.distances = np.delete(self.distances, location_indx, axis=1)
+            self.locations.remove(location)
 
     def distances_between(self, from_location, to_location):
         return self.distances[from_location.indx, to_location.indx]
@@ -65,8 +88,8 @@ class Hospital:
         return rtn
 
     def __copy__(self):
-        rtn = Hospital([loc.name for loc in self.locations], copy(self.distances))
-        rtn.lab_indx = self.lab_indx
+        rtn = Hospital(copy(self.locations), copy(self.distances))
+        rtn.lab = self.lab
         rtn.time = self.time
         rtn.porters = copy(self.porters)
         rtn.samples = copy(self.samples)

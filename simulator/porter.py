@@ -1,10 +1,11 @@
+from datetime import datetime
 import uuid
 
 class Porter:
     def __init__(self, name, location, id=None):
         self.id = id or uuid.uuid1()
         self.name = name
-        self.eta = 0
+        self.eta = datetime.min
         self.in_transit = False
         self.location = location
         self.samples = []
@@ -41,7 +42,7 @@ class Porter:
                     
     @property
     def next_deadline(self):
-        return min([sample.deadline for sample in self.samples] + [float('inf')])
+        return min([sample.deadline for sample in self.samples] + [datetime.max])
 
     def time_to_destination(self, current_time):
         return max(self.eta - current_time, 0)

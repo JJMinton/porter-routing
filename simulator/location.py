@@ -1,3 +1,4 @@
+from datetime import datetime
 import uuid
 
 class Location:
@@ -11,7 +12,10 @@ class Location:
         
     @property
     def next_deadline(self):
-        return min([sample.deadline for sample in self.samples] + [float('inf')])
+        return min([sample.deadline for sample in self.samples] + [datetime.max])
     
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        return f"{self.id}({self.name})"

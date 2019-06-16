@@ -7,7 +7,7 @@ import numpy as np
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 
-from googleOR_utils import print_solution
+from googleOR_utils import print_solution, solution_to_dict
 
 
 def create_data_model(hospital):
@@ -38,7 +38,7 @@ def create_data_model(hospital):
 
     return data
 
-def solver(hospital, max_time=480):
+def solver(hospital, _=None, max_time=480):
     """Entry point of the program."""
     # Instantiate the data problem.
     data = create_data_model(hospital)
@@ -46,7 +46,11 @@ def solver(hospital, max_time=480):
 
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(
-        len(data['distance_matrix']), data['num_vehicles'], data['start_locations'], data['end_locations'])
+        len(data['distance_matrix']),
+        data['num_vehicles'],
+        data['start_locations'],
+        data['end_locations']
+    )
 
     # Create Routing Model.
     routing = pywrapcp.RoutingModel(manager)
@@ -65,26 +69,15 @@ def solver(hospital, max_time=480):
 
     # Add Distance constraint.
     dimension_name = 'Distance'
+    print(max_time)
     routing.AddDimension(
         transit_callback_index,
         0,  # no slack
-        3000,  # vehicle maximum travel distance
+        int(max_time),  # vehicle maximum travel distance
         True,  # start cumul to zero
         dimension_name)
     distance_dimension = routing.GetDimensionOrDie(dimension_name)
     distance_dimension.SetGlobalSpanCostCoefficient(100)
-
-    # Define Transportation Requests.
-    for request in data['pickups_deliveries']:
-        pickup_index = manager.NodeToIndex(request[0])
-        delivery_index = manager.NodeToIndex(request[1])
-        routing.AddPickupAndDelivery(pickup_index, delivery_index)
-        routing.solver().Add(
-            routing.VehicleVar(pickup_index) == routing.VehicleVar(
-                delivery_index))
-        routing.solver().Add(
-            distance_dimension.CumulVar(pickup_index) <=
-            distance_dimension.CumulVar(delivery_index))
 
     # Setting first solution heuristic.
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
@@ -97,8 +90,11 @@ def solver(hospital, max_time=480):
     # Print solution on console.
     if assignment:
         print_solution(data, manager, routing, assignment)
+        return solution_to_dict(manager, routing, assignment, hospital)
     else:
         print("Failed")
+        return None
+
 
 
 if __name__ == "__main__":
