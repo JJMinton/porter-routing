@@ -1,5 +1,8 @@
+import uuid
+
 class Porter:
-    def __init__(self, name, location):
+    def __init__(self, name, location, id=None):
+        self.id = id or uuid.uuid1()
         self.name = name
         self.eta = 0
         self.in_transit = False
@@ -9,7 +12,9 @@ class Porter:
     def move_to(self, new_location, hospital):
         assert not self.in_transit
         self.location = new_location
-        self.eta = hospital.time + hospital.distance_between(self.location, new_location)
+        self.eta = hospital.time + hospital.distance_between(
+            self.location, new_location
+        )
         self.in_transit = True
 
     def arrived(self):
@@ -34,6 +39,7 @@ class Porter:
                     sample.location = self.location
                     self.samples.remove(sample)
                     
+    @property
     def next_deadline(self):
         return min([sample.deadline for sample in self.samples] + [float('inf')])
 

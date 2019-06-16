@@ -23,16 +23,22 @@ def create_data_model(hospital):
 
     data['distance_matrix'] = distances
     data['pickups_deliveries'] = [
-        (sample.location.indx, sample.destination.indx)
+        (
+            hospital.locations.index(sample.location),
+            hospital.locations.index(sample.destination)
+        )
         for sample in hospital.samples if not sample.has_arrived()
     ]
     data['num_vehicles'] = len(hospital.porters)
     data['end_locations'] = [dummy_lab_indx]*data['num_vehicles']
-    data['start_locations'] = [porter.location.indx or dummy_lab_indx for porter in hospital.porters]
+    data['start_locations'] = [
+        hospital.locations.index(porter.location) or dummy_lab_indx
+        for porter in hospital.porters
+    ]
 
     return data
 
-def solver(hospital):
+def solver(hospital, max_time=480):
     """Entry point of the program."""
     # Instantiate the data problem.
     data = create_data_model(hospital)

@@ -1,4 +1,8 @@
+from datetime import datetime, timedelta
 from simulator.hospital import Hospital
+
+
+current_time = datetime.now()
 
 
 demo1 = Hospital(
@@ -10,8 +14,8 @@ demo1 = Hospital(
     ]
 )
 demo1.add_porter("Joe")
-demo1.add_sample("KGD12", demo1.locations[1], 45)
-demo1.add_sample("KGD24", demo1.locations[2], 120)
+demo1.add_sample("KGD12", demo1.locations[1], current_time + timedelta(minutes=45))
+demo1.add_sample("KGD24", demo1.locations[2], current_time + timedelta(minutes=120))
 
 
 demo2 = Hospital(
@@ -30,7 +34,7 @@ demo2 = Hospital(
 )
 demo2.add_porter("Paul")
 demo2.add_porter("Katie")
-demo2.add_sample("Sample1", demo2.locations[4], 34)
-demo2.add_sample("Sample2", demo2.locations[2], 60)
-demo2.add_sample("Sample3", demo2.locations[7], 60)
+demo2.add_sample("Smpl1", demo2.locations[4], current_time + timedelta(minutes=34))
+demo2.add_sample("Smpl2", demo2.locations[2], current_time + timedelta(minutes=60))
+demo2.add_sample("Smpl3", demo2.locations[7], current_time + timedelta(minutes=60))
 

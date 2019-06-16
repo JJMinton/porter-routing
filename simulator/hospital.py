@@ -1,3 +1,5 @@
+from copy import copy
+
 import numpy as np
 
 from simulator.location import Location
@@ -13,7 +15,7 @@ class Hospital:
         locations {list}: a list of location names. The first is assumed to be the lab.
         distances {2d array}: an array of times between locations by index
         """
-        self.locations = [Location(indx, name) for indx, name in enumerate(locations)]
+        self.locations = [Location(name) for name in locations]
         self.distances = np.array(distances)
         self.lab_indx = 0
         self.time = 0
@@ -28,6 +30,18 @@ class Hospital:
             Sample(name, location, deadline, self.locations[self.lab_indx])
         )
 
+    def remove_porter_and_samples(self, porter):
+        self.samples = [
+            sample for sample in self.samples if sample.location != porter
+        ]
+        self.porters.remove(porter)
+
+    def remove_location_and_samples(self, location):
+        self.samples = [
+            sample for sample in self.samples if sample.location != location
+        ]
+        self.locations.remove(location)
+
     def distances_between(self, from_location, to_location):
         return self.distances[from_location.indx, to_location.indx]
 
@@ -39,7 +53,7 @@ class Hospital:
             sample.pass_time(minutes)
 
     def locations_by_urgency(self):
-        return sorted(self.locations, key=lambda sample: sample.time_to_deadline)
+        return sorted(self.locations, key=lambda location: location.time_to_next_deadline(0))
 
     def __str__(self):
         rtn = f"{self.time} minutes passed\n"
@@ -48,4 +62,12 @@ class Hospital:
             rtn += str(porter) + "\n"
         for sample in self.samples:
             rtn += str(sample) + "\n"
+        return rtn
+
+    def __copy__(self):
+        rtn = Hospital([loc.name for loc in self.locations], copy(self.distances))
+        rtn.lab_indx = self.lab_indx
+        rtn.time = self.time
+        rtn.porters = copy(self.porters)
+        rtn.samples = copy(self.samples)
         return rtn
