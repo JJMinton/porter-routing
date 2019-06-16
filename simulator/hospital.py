@@ -36,8 +36,7 @@ class Hospital:
     def get_location(self, location):
         if isinstance(location, Location):
             return location
-        if isinstance(current_location, str):
-            return [loc for loc in self.locations if loc.id==current_location][0]
+        return [loc for loc in self.locations if loc.id==location][0]
 
     def list_locations_without_samples(self):
         return [
